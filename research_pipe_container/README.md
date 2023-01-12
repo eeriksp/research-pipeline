@@ -37,31 +37,69 @@ TBW
 `git clone <PROJECT GITHUB LINK>`.
 - If you want to ingest the raw data from Kaggle, you will need to prepare a `kaggle.json` file and include it in the project root directory. The default file is included but it needs to be updated with the appropriate credentials. More information can be found here: https://pypi.org/project/opendatasets/.
 
-## 2.2. Run the Pipeline
+## 2.2. Quick Start of Establishing Data Pipeline environment
+Prepare a data pipeline environment in docker with 5 steps.
 1. Start your `Docker Desktop` and make sure to allocate sufficient memory (`Settings -> Resources -> Memory`, say 6.25 GB).
-2. Navigate to the root directory of this project.
-3. From command line (or Terminal on a Mac), run <br>
-`echo -e "AIRFLOW_UID=$(id -u)\nAIRFLOW_GID=0" > .env`  <br>
-This creates an environment file for Airflow to allow to run it as a superuser.
-4. Run `docker-compose up airflow-init`. This initializes Airflow with username and pwd 'airflow' to be used. Wait until the run is completed.
-5. Now, run `docker-compose up`. This runs all the services described in the `docker-compose.yaml` file. These services include Airflow, Jupyter Notebook, PostgreSQL, and Neo4J. This may take some time, but it is suggested to keep an eye on the progress from command line, especially whether all services have been properly started. This command also install all the necessary `python` modules and packages.
-6. Make sure that all services are up and running. For that, try accessing the services from your browser:
+2. Navigate to the directory of docker compose file.
+   ```bash
+   $ cd <directory of docker compose file>
+   ```
+3. From command line (or Terminal on a Mac), run following command to created `.env` file:
+    ```bash
+    $ echo -e "AIRFLOW_UID=$(id -u)\nAIRFLOW_GID=0" > .env
+    ```
+    **Note :** The `.env` file needs to in the same directory of docker compse file. This creates an environment file for Airflow to allow to run it as a superuser.
+4. Run following command to start up the necessary services.
+   ```bash
+   $ docker compose up -d
+   ```
+   **Note :** Execution of the command above needs to be in the same directory of docker compse file. This runs all the services described in the `docker-compose.yaml` file. The services include 
+   - Airflow
+   - PostgreSQL
+   - Neo4J 
+   - Jupyter Notebook
+   
+   This may take some time, but it is suggested to keep an eye on the progress from command line, especially whether all services have been properly started. This command also install all the necessary `python` modules and packages.
+5. Make sure that all services are up and running. For that, try accessing the services from your browser:
     - Airflow: http://localhost:8080/
     - Jupyter Notebook: http://localhost:8888/
     - Neo4J: http://localhost:7474/ 
 
     If it's not possible to access all services, wait for some time. Typically, the problem occurs with Neo4J, and if it's not possible to start the service(s), you can also try stopping the process (press twice `Ctrl (or Cmd) + C`) and `docker-compose down`. Then, repeat the process, starting from Step 4.
-7. The project folder includes the data tables by default. However, you can also test data ingestion, transformation, and augmentation yourself by deleting the .csv files. **Caution!** Doing so will mean a significantly long runtime (can be more than half a day). If you do choose to go without the default data tables (in repositories `dags/tables` and `dags/data_ready`, see below for description), navigate to the root directory of this project and run the following commands from Terminal: <br>
-    - Install the necessary packages (on your local machine):<br> 
-    `python -m pip install -r requirements.txt`
-    - Run the following command:<br>
-    `python3 dags/scripts/raw_to_tables.py`<br>
-    This script will (1) download the Kaggle data on your machine, (2) unzip it (appx 3+ GB), (3) extract the necessary data, (4) make the preliminary data cleaning, (5) create the tables depicted in Figure 2, and (6) saves the tables to the `dags/tables` directory in .csv format. Note: you might be asked for your Kaggle credentials from the command line but usually it works also when the file is in the root directory of the project.
 
-8. Navigate to Airflow (http://localhost:8080/). If everything is correct, you should see a DAG called `research_pipeline_dag`. Click on it. Then click on `Graph`. You should now be able to see the DAG. 
-9. To trigger the DAG, click on the button on the right that resembles 'Play'. Select `Trigger DAG` when prompted. This triggers the DAG. Wiat for the execution to be finished.
-10. Navigate to Jupyter Notebook (http://localhost:8888/) and run the analytical queries for Relational Database. Of note, it is also possible to run Neo4J queries from the notebook, but for our purposes, we run the Neo4J queries from Neo4J browser interface (http://localhost:7474/)
-11. And this should be it. Airflow should trigger the data update in summer (at around 1st August), so nothing should change before that.
+
+## 2.3 Preparation of Initial Dataset
+The project folder includes the data tables by default. However, you can also test data ingestion, transformation, and augmentation yourself by deleting the .csv files. 
+
+**Caution!** Doing so will mean a significantly long runtime (can be more than half a day). If you do choose to go without the default data tables (in repositories `dags/tables` and `dags/data_ready`, see below for description), navigate to the root directory of this project and run the following commands from Terminal: <br>
+```bash
+# Install the necessary packages (on your local machine)
+$ python -m pip install -r requirements.txt
+# Run the following command
+$ python3 dags/scripts/raw_to_tables.py
+```
+
+When you run the command above, you might need provide your kaggle `username` and `Key`. To get `username` and `Key`, go to Account --> goto API --> Click Create New API Token.
+
+This script will 
+1. Download the Kaggle data on your machine, 
+2. Unzip it (appx 3+ GB), 
+3. Extract the necessary data, 
+4. Make the preliminary data cleaning, 
+5. Create the tables depicted in Figure 2, and 
+6. Saves the tables to the `dags/tables` directory in .csv format.
+   
+   **Note:** you might be asked for your Kaggle credentials from the command line but usually it works also when the file is in the root directory of the project.
+
+
+## Run the Pipeline
+Navigate to Airflow (http://localhost:8080/). If everything is correct, you should see a DAG called `research_pipeline_dag`. Click on it. Then click on `Graph`. You should now be able to see the DAG. 
+
+To trigger the DAG, click on the button on the right that resembles 'Play'. Select `Trigger DAG` when prompted. This triggers the DAG. Wiat for the execution to be finished.
+
+Navigate to Jupyter Notebook (http://localhost:8888/) and run the analytical queries for Relational Database. Of note, it is also possible to run Neo4J queries from the notebook, but for our purposes, we run the Neo4J queries from Neo4J browser interface (http://localhost:7474/)
+
+And this should be it. Airflow should trigger the data update in summer (at around 1st August), so nothing should change before that.
 
 # 3. Files and Directories
 ## 3.1 Directory Tree and a Brief Functional Overview
